@@ -12,4 +12,6 @@ WORKDIR /app
 COPY --from=build /app/dog_defs .
 COPY --from=build /app/templates ./templates
 
+EXPOSE 8080
+
 CMD ["./dog_defs"]
