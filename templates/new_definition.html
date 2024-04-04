@@ -1,0 +1,25 @@
+{{template "top" .}}
+{{template "navigation" .}}
+<form action="/definitions/new" method="POST">
+
+    <label for="word">Word</label>
+    <input type="text" name="word" id="word" required/>
+
+    <label for="pos">Part of Speech</label>
+    <select name="pos" id="pos">
+        <option disabled selected value> -- select an option -- </option>
+        <option value="noun">Noun</option>
+        <option value="verb">Verb</option>
+        <option value="adverb">Adverb</option>
+        <option value="adjective">Adjective</option>
+    </select>
+
+    <label for="definition">Definition</label>
+    <input type="text" name="definition" id="definition" required/>
+
+    <label for="reference">Reference</label>
+    <input type="text" name="reference" id="reference"/>
+
+    <input type="submit">
+</form>
+{{template "bottom" .}}
