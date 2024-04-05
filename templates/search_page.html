@@ -1,0 +1,14 @@
+{{template "top" .}}
+{{template "navigation" .}}
+  <h1>
+    {{ .count }} result(s) for "{{ .query }}"
+  </h1>
+</header>
+<main>
+  {{ range .results}}
+    <a href="/words/{{.Id}}">{{ .Word }} - <small><i>({{.DefCount}} definition(s))</i></small></a>
+    <hr>
+  {{ end }}
+
+</main>
+{{template "bottom" .}}

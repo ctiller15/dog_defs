@@ -1,0 +1,29 @@
+{{template "top" .}}
+{{template "navigation" .}}
+  <h1>
+    {{ .definition_count }} Definition(s) for "{{ .word }}"
+  </h1>
+</header>
+  <ol>
+  {{range .definitions}}
+    <li>
+      <section>
+        <i>{{ .PartOfSpeech }}</i>
+        <p>{{ .Definition }}</p>
+
+        {{ if .HasReference }}
+            <p>reference: <small><i>{{ .Reference }}</i></small></p>
+        {{ end }}
+
+        {{ if .HasReferenceLink }}
+            <a href="{{.ReferenceLink}}" target="_blank">Source</a>
+        {{ end }}
+
+      </section>
+    </li>
+
+  {{end}}
+
+  </ol>
+
+{{template "bottom" .}}

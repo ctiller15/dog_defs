@@ -3,21 +3,40 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta 
+        name="viewport" 
+        content="width=device-width, initial-scale=1">
+    <link 
+        rel="stylesheet" 
+        href="https://cdn.simplecss.org/simple.min.css">
     <title>{{ .title }}</title>
 </head>
 <body>
 {{ end }}
 
 {{ define "navigation"}}
+<header>
 <nav>
     <a href="/">Home</a>
     <a href="/words">Words</a>
     <a href="/definitions/new">New Definition</a>
 </nav>
+<form action="/search" method="get">
+    <input type="text" placeholder="Search" name="query"/>
+    <button type="submit">Search</button>
+</form>
 {{ end }}
 
 {{ define "bottom" }}
+<footer>
+    <p>Made with ❤️ by Pawsitech LLC</p>
+    <a 
+        href="https://github.com/ctiller15/dog_defs" 
+        target="_blank">View on Github</a>
+    <a 
+        href="https://ko-fi.com/christophertiller" 
+        target="_blank">Support this project!</a>
+</footer>
 </body>
 </html>
 {{ end }}

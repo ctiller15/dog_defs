@@ -1,25 +1,57 @@
 {{template "top" .}}
 {{template "navigation" .}}
-<form action="/definitions/new" method="POST">
+    <h1>Submit a Definition</h1>
+    <p>Share what you know - Every bit helps!</p>
+</header>
+<main>
 
-    <label for="word">Word</label>
-    <input type="text" name="word" id="word" required/>
+    <form action="/definitions/new" method="POST">
 
-    <label for="pos">Part of Speech</label>
-    <select name="pos" id="pos">
-        <option disabled selected value> -- select an option -- </option>
-        <option value="noun">Noun</option>
-        <option value="verb">Verb</option>
-        <option value="adverb">Adverb</option>
-        <option value="adjective">Adjective</option>
-    </select>
+        <label for="word">Word *</label>
+        <input 
+            type="text" 
+            name="word" 
+            id="word" 
+            placeholder="puppy" 
+            required/>
+        
+        <label for="definition">Definition *</label>
+        <textarea
+            rows="4"
+            cols="50"
+            maxlength="1000"
+            name="definition" 
+            id="definition" 
+            placeholder="An adorable four legged mammal" 
+            required></textarea>
 
-    <label for="definition">Definition</label>
-    <input type="text" name="definition" id="definition" required/>
+        <label for="pos">Part of Speech</label>
+        <select name="pos" id="pos">
+            <option disabled selected value> -- select an option -- </option>
+            <option value="noun">Noun</option>
+            <option value="verb">Verb</option>
+            <option value="adverb">Adverb</option>
+            <option value="adjective">Adjective</option>
+        </select>
 
-    <label for="reference">Reference</label>
-    <input type="text" name="reference" id="reference"/>
+        <label for="reference">Reference</label>
+        <input 
+            type="text" 
+            name="reference" 
+            id="reference" 
+            placeholder="Book, journal, article, etc."/>
 
-    <input type="submit">
-</form>
+        <label for="link">Link</label>
+        <input 
+            type="url" 
+            name="link" 
+            id="link" 
+            placeholder="Link to blog, website, etc."/>
+
+        <section>
+            <button type="submit">Submit Definition</button>
+            <button type="reset">Reset</button>
+        </section>
+    </form>
+</main>
 {{template "bottom" .}}
