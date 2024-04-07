@@ -8,19 +8,14 @@ import (
 	"os"
 	"strings"
 
+	"ctiller15/dog_defs/handlers"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/supabase-community/supabase-go"
 )
 
 // CODE GO BRRRRRRRR
-
-func homePage(c *gin.Context) {
-	c.HTML(http.StatusOK, "index.html", gin.H{
-		"title":    "DogDefs",
-		"greeting": "Welcome to Dogdefs!",
-	})
-}
 
 type wordResult struct {
 	Id       int    `json:"word_id"`
@@ -29,8 +24,6 @@ type wordResult struct {
 }
 
 func wordsPage(c *gin.Context) {
-	fmt.Println("Fetching all approved words...")
-
 	// TODO: Break data retrieval into separate module.
 	apiUrl := os.Getenv("SUPABASE_API_URL")
 	apiKey := os.Getenv("SUPABASE_API_KEY")
@@ -105,7 +98,6 @@ func mapToDefinitionViewModel(inModel []wordDefinitionListResult) []definitionVi
 }
 
 func wordDefinitionPage(c *gin.Context) {
-	fmt.Println("Getting definitions for word...")
 	word_id := c.Param("word_id")
 
 	// TODO: Break data retrieval into separate module.
@@ -194,10 +186,7 @@ func saveNewDefinition(c *gin.Context) {
 	var wordResponse newDefinitionResponse
 	json.Unmarshal(data, &wordResponse)
 
-	fmt.Println(wordResponse)
-
 	word_id := wordResponse.Id
-	fmt.Println(word_id)
 
 	// Now create the definition based on the word.
 	saveDefinitionForm := map[string]interface{}{
@@ -225,8 +214,6 @@ func saveNewDefinition(c *gin.Context) {
 
 func searchPage(c *gin.Context) {
 	query := c.Query("query")
-	fmt.Println("Searching words!")
-	fmt.Println(query)
 
 	// TODO: Break data retrieval into separate module.
 	apiUrl := os.Getenv("SUPABASE_API_URL")
@@ -259,20 +246,16 @@ func searchPage(c *gin.Context) {
 	})
 }
 
-func notFoundPage(c *gin.Context) {
-	c.HTML(http.StatusNotFound, "404_page.html", gin.H{
-		"title": "Not Found",
-	})
-}
-
 func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("Error loading .env file. May see unexpected behavior.")
 	}
 	r := gin.Default()
+	r.StaticFile("/favicon.ico", "favicon.ico")
 	r.LoadHTMLGlob("templates/*")
-	r.GET("/", homePage)
+	r.GET("/", handlers.HomePage)
+
 	r.GET("/words", wordsPage)
 	r.GET("/words/:word_id", wordDefinitionPage)
 
@@ -281,7 +264,7 @@ func main() {
 
 	r.GET("/search", searchPage)
 
-	r.NoRoute(notFoundPage)
+	r.NoRoute(handlers.NotFoundPage)
 
 	r.Run(":8080")
 }

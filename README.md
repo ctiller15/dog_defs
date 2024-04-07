@@ -11,3 +11,11 @@ docker run -p 8080:8080 dog-defs
 docker build -t dog-defs .
 docker run -p 8080:8080 dog-defs
 ```
+
+```bash
+# With docker-compose
+cp .env.example .env
+# fill in env vars.
+docker-compose build
+docker-compose up -d
+```
