@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"math"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gosimple/slug"
 	"github.com/joho/godotenv"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/supabase-community/supabase-go"
 )
 
@@ -144,7 +146,7 @@ type wordDefinitionListResult struct {
 type definitionViewModel struct {
 	WordId           int
 	Word             string
-	Definition       string
+	Definition       template.HTML
 	PartOfSpeech     string
 	Reference        string
 	HasReference     bool
@@ -159,7 +161,7 @@ func mapToDefinitionViewModel(inModel []wordDefinitionListResult) []definitionVi
 		viewModel := definitionViewModel{
 			WordId:           model.WordId,
 			Word:             model.Word,
-			Definition:       model.Definition,
+			Definition:       template.HTML(model.Definition),
 			PartOfSpeech:     model.PartOfSpeech,
 			Reference:        model.Reference,
 			HasReference:     len(model.Reference) > 0,
@@ -235,6 +237,7 @@ type newDefinitionResponse struct {
 }
 
 func saveNewDefinition(c *gin.Context) {
+	p := bluemonday.UGCPolicy()
 	// TODO: Break data retrieval into separate module.
 	apiUrl := os.Getenv("SUPABASE_API_URL")
 	apiKey := os.Getenv("SUPABASE_API_KEY")
@@ -256,6 +259,8 @@ func saveNewDefinition(c *gin.Context) {
 		"slug": slug.Make(strings.ToLower(newForm.Word)),
 	}
 
+	fmt.Println(saveWordForm)
+
 	data, _, err := client.From("words").Insert(
 		saveWordForm, true, "name", "representation", "",
 	).Single().Execute()
@@ -264,6 +269,7 @@ func saveNewDefinition(c *gin.Context) {
 		fmt.Println(err)
 	}
 
+	fmt.Println("$$$")
 	var wordResponse newDefinitionResponse
 	json.Unmarshal(data, &wordResponse)
 
@@ -271,7 +277,7 @@ func saveNewDefinition(c *gin.Context) {
 
 	// Now create the definition based on the word.
 	saveDefinitionForm := map[string]interface{}{
-		"text":           newForm.Definition,
+		"text":           p.Sanitize(newForm.Definition),
 		"approved":       false,
 		"word_id":        word_id,
 		"part_of_speech": newForm.PartOfSpeech,

@@ -1,4 +1,4 @@
-{{template "top" .}}
+{{template "top_with_editor" .}}
 {{template "navigation" .}}
     <h1>Submit a Definition</h1>
     <p>Share what you know - Every bit helps!</p>
@@ -16,7 +16,14 @@
             required/>
         
         <label for="definition">Definition *</label>
+        <span style="display: inline">
+            <button 
+                title="add a link to the description"
+                style="width: 2em; height: 2em"
+                id="anchorButton">🔗</button>
+        </span>
         <textarea
+            style="display: block"
             rows="4"
             cols="50"
             maxlength="1000"
@@ -54,5 +61,37 @@
             <button type="reset">Reset</button>
         </section>
     </form>
+    <script>
+        const textArea = document.querySelector('#definition')
+        const anchorButton = document.querySelector('#anchorButton')
+        anchorButton.addEventListener('click', function(e) {
+            e.preventDefault()
+            const text = textArea.textContent
+            const newText = text + ' <a href="/words/slug-goes-here">text-goes-here</a>'
+            textArea.textContent = newText
+        })
+        // window.ClassicEditor
+            // .create( document.querySelector( '#definition' ), {
+            //     toolbar: {
+            //         items: [
+            //             'bold',
+            //             'italic',
+            //             'link',
+            //             'bulletedList',
+            //             'numberedList',
+            //             '|',
+            //             'outdent',
+            //             'indent',
+            //             '|',
+            //             'blockQuote',
+            //             'undo',
+            //             'redo'
+            //         ]
+            //     }
+            // })
+            // .catch( error => {
+            //     console.error( error );
+            // } );
+    </script>
 </main>
 {{template "bottom" .}}
