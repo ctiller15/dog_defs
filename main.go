@@ -13,6 +13,7 @@ import (
 	"ctiller15/dog_defs/handlers"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gosimple/slug"
 	"github.com/joho/godotenv"
 	"github.com/supabase-community/supabase-go"
 )
@@ -22,6 +23,7 @@ import (
 type wordResult struct {
 	Id       int    `json:"word_id"`
 	Word     string `json:"word"`
+	Slug     string `json:"slug"`
 	DefCount int    `json:"def_count"`
 }
 
@@ -102,9 +104,6 @@ func wordsPage(c *gin.Context) {
 		Range(pageSize*(page-1), pageSize*page, "").
 		Execute()
 
-	fmt.Println("Getting list of words!")
-	fmt.Println(count)
-
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -112,6 +111,9 @@ func wordsPage(c *gin.Context) {
 	var wordsListResponse []wordResult
 
 	json.Unmarshal(data, &wordsListResponse)
+
+	fmt.Println(wordsListResponse)
+	fmt.Println("^^^^^")
 
 	maxPages := int(count/int64(pageSize)) + 1
 
@@ -172,7 +174,7 @@ func mapToDefinitionViewModel(inModel []wordDefinitionListResult) []definitionVi
 }
 
 func wordDefinitionPage(c *gin.Context) {
-	word_id := c.Param("word_id")
+	word_slug := c.Param("word_slug")
 
 	// TODO: Break data retrieval into separate module.
 	apiUrl := os.Getenv("SUPABASE_API_URL")
@@ -189,7 +191,11 @@ func wordDefinitionPage(c *gin.Context) {
 
 	var listResult []wordDefinitionListResult
 
-	data, count, err := client.From("word_definitions").Select("*", "exact", false).Filter("id", "eq", word_id).Execute()
+	data, count, err := client.
+		From("word_definitions").
+		Select("*", "exact", false).
+		Filter("slug", "eq", word_slug).
+		Execute()
 
 	// If count is somehow less than 1 we want to return a 404.
 
@@ -247,6 +253,7 @@ func saveNewDefinition(c *gin.Context) {
 
 	saveWordForm := map[string]interface{}{
 		"name": strings.ToLower(newForm.Word),
+		"slug": slug.Make(strings.ToLower(newForm.Word)),
 	}
 
 	data, _, err := client.From("words").Insert(
@@ -302,7 +309,11 @@ func searchPage(c *gin.Context) {
 		fmt.Println("cannot initialize client", err)
 	}
 
-	data, count, err := client.From("words_list").Select("*", "exact", false).Ilike("word", "%"+query+"%").Execute()
+	data, count, err := client.
+		From("words_list").
+		Select("*", "exact", false).
+		Ilike("word", "%"+query+"%").
+		Execute()
 
 	if err != nil {
 		fmt.Println(err)
@@ -311,6 +322,8 @@ func searchPage(c *gin.Context) {
 	var wordsListResponse []wordResult
 
 	json.Unmarshal(data, &wordsListResponse)
+
+	fmt.Println(&wordsListResponse)
 
 	c.HTML(http.StatusOK, "search_page.html", gin.H{
 		"title":   "Search results for " + query,
@@ -328,7 +341,7 @@ func setupRouter() *gin.Engine {
 	handlers.SetupIndex(r)
 
 	r.GET("/words", wordsPage)
-	r.GET("/words/:word_id", wordDefinitionPage)
+	r.GET("/words/:word_slug", wordDefinitionPage)
 
 	r.GET("/definitions/new", newDefinitionsPage)
 	r.POST("/definitions/new", saveNewDefinition)

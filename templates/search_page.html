@@ -6,7 +6,7 @@
 </header>
 <main>
   {{ range .results}}
-    <a href="/words/{{.Id}}">{{ .Word }} - <small><i>({{.DefCount}} definition(s))</i></small></a>
+    <a href="/words/{{.Slug}}">{{ .Word }} - <small><i>({{.DefCount}} definition(s))</i></small></a>
     <hr>
   {{ end }}
 
