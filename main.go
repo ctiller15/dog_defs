@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"ctiller15/dog_defs/handlers"
@@ -23,12 +25,67 @@ type wordResult struct {
 	DefCount int    `json:"def_count"`
 }
 
+type paginationResponse struct {
+	Value      string
+	PageUrl    string
+	IsCurrent  bool
+	IsEllipsis bool
+}
+
+type DirectionalPageLink struct {
+	Url     string
+	Enabled bool
+}
+
+// Needs to be broken out and tested.
+func createPagination(currentPage int, maxPage int, urlBase string) []paginationResponse {
+	var pages []paginationResponse
+	if currentPage > 2 && maxPage-currentPage > 2 {
+		pages = []paginationResponse{
+			{Value: "1", IsEllipsis: false, PageUrl: fmt.Sprintf("?page=%d%s", 1, urlBase)},
+			{Value: "", IsEllipsis: true, PageUrl: ""},
+			{Value: strconv.Itoa(currentPage - 1), IsEllipsis: false, PageUrl: fmt.Sprintf("?page=%d%s", currentPage-1, urlBase)},
+			{Value: strconv.Itoa(currentPage), IsEllipsis: false, PageUrl: fmt.Sprintf("?page=%d%s", currentPage, urlBase), IsCurrent: true},
+			{Value: strconv.Itoa(currentPage + 1), IsEllipsis: false, PageUrl: fmt.Sprintf("?page=%d%s", currentPage+1, urlBase)},
+			{Value: "", IsEllipsis: true, PageUrl: ""},
+			{Value: strconv.Itoa(maxPage), IsEllipsis: false, PageUrl: fmt.Sprintf("?page=%d%s", maxPage, urlBase)},
+		}
+	} else if currentPage > 2 {
+		pages = []paginationResponse{
+			{Value: "1", IsEllipsis: false, PageUrl: fmt.Sprintf("?page=%d%s", 1, urlBase)},
+			{Value: "", IsEllipsis: true, PageUrl: ""},
+		}
+
+		for i := currentPage - 1; i < maxPage+1; i++ {
+			pages = append(pages, paginationResponse{Value: strconv.Itoa(i), IsEllipsis: false, PageUrl: fmt.Sprintf("?page=%d%s", i, urlBase), IsCurrent: i == currentPage})
+		}
+	} else if maxPage-currentPage > 2 {
+		for i := 1; i < currentPage+3; i++ {
+			pages = append(pages, paginationResponse{Value: strconv.Itoa(i), IsEllipsis: false, PageUrl: fmt.Sprintf("?page=%d%s", i, urlBase), IsCurrent: i == currentPage})
+		}
+
+		pages = append(pages, paginationResponse{Value: "", IsEllipsis: true})
+		pages = append(pages, paginationResponse{Value: strconv.Itoa(maxPage), IsEllipsis: false, PageUrl: fmt.Sprintf("?page=%d%s", maxPage, urlBase)})
+	} else {
+		// Loop up to current page. Loop up to max page.
+		for i := 1; i < maxPage; i++ {
+			pages = append(pages, paginationResponse{Value: strconv.Itoa(i), IsEllipsis: false, PageUrl: fmt.Sprintf("?page=%d%s", maxPage, urlBase), IsCurrent: i == currentPage})
+		}
+	}
+
+	return pages
+}
+
 func wordsPage(c *gin.Context) {
+	page, err := strconv.Atoi(c.Query("page"))
+	pageSize := 40
+	if err != nil {
+		page = 1
+	}
+
 	// TODO: Break data retrieval into separate module.
 	apiUrl := os.Getenv("SUPABASE_API_URL")
 	apiKey := os.Getenv("SUPABASE_API_KEY")
-	fmt.Println(apiUrl)
-	fmt.Println(apiKey)
 
 	client, err := supabase.NewClient(
 		apiUrl,
@@ -39,7 +96,14 @@ func wordsPage(c *gin.Context) {
 		fmt.Println("cannot initialize client", err)
 	}
 
-	data, count, err := client.From("words_list").Select("*", "exact", false).Execute()
+	data, count, err := client.
+		From("words_list").
+		Select("*", "exact", false).
+		Range(pageSize*(page-1), pageSize*page, "").
+		Execute()
+
+	fmt.Println("Getting list of words!")
+	fmt.Println(count)
 
 	if err != nil {
 		fmt.Println(err)
@@ -49,10 +113,20 @@ func wordsPage(c *gin.Context) {
 
 	json.Unmarshal(data, &wordsListResponse)
 
+	maxPages := int(count/int64(pageSize)) + 1
+
+	paginationResponse := createPagination(page, maxPages, "")
+
+	previouspagenum := int(math.Max(float64(page-1), 1))
+	nextpagenum := int(math.Min(float64(page+1), float64(maxPages)))
+
 	c.HTML(http.StatusOK, "words.html", gin.H{
-		"title": "Words",
-		"words": &wordsListResponse,
-		"count": count,
+		"title":            "Words",
+		"words":            &wordsListResponse,
+		"count":            count,
+		"pagination":       &paginationResponse,
+		"previousPageLink": DirectionalPageLink{Url: "?page=" + strconv.Itoa(previouspagenum), Enabled: previouspagenum != page},
+		"nextPageLink":     DirectionalPageLink{Url: "?page=" + strconv.Itoa(nextpagenum), Enabled: nextpagenum != page},
 	})
 }
 
@@ -246,15 +320,12 @@ func searchPage(c *gin.Context) {
 	})
 }
 
-func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Error loading .env file. May see unexpected behavior.")
-	}
+func setupRouter() *gin.Engine {
 	r := gin.Default()
 	r.StaticFile("/favicon.ico", "favicon.ico")
 	r.LoadHTMLGlob("templates/*")
-	r.GET("/", handlers.HomePage)
+
+	handlers.SetupIndex(r)
 
 	r.GET("/words", wordsPage)
 	r.GET("/words/:word_id", wordDefinitionPage)
@@ -264,7 +335,16 @@ func main() {
 
 	r.GET("/search", searchPage)
 
-	r.NoRoute(handlers.NotFoundPage)
+	return r
+}
+
+func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Error loading .env file. May see unexpected behavior.")
+	}
+
+	r := setupRouter()
 
 	r.Run(":8080")
 }

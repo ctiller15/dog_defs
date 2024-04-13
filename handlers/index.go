@@ -6,15 +6,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func HomePage(c *gin.Context) {
+func homePage(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{
 		"title":    "DogDefs",
-		"greeting": "Welcome to Dogdefs!",
+		"greeting": "Welcome to DogDefs!",
 	})
 }
 
-func NotFoundPage(c *gin.Context) {
+func notFoundPage(c *gin.Context) {
 	c.HTML(http.StatusNotFound, "404_page.html", gin.H{
 		"title": "Not Found",
 	})
+}
+
+func SetupIndex(r *gin.Engine) *gin.Engine {
+	r.GET("/", homePage)
+	r.NoRoute(notFoundPage)
+	return r
 }

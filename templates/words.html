@@ -1,12 +1,14 @@
 {{template "top" .}}
 {{template "navigation" .}}
 <h1>Words List</h1>
-<p>See every word we have in our database.</p>
+<p>See all <strong>{{.count}}</strong> words we have in our database.</p>
 </header>
     <main>
+        {{ template "pagination" .}}
         {{range .words}}
         <a href="/words/{{.Id}}">{{ .Word }} - <small><i>({{.DefCount}} definition(s))</i></small></a>
         <hr>
         {{end}}
+        {{ template "pagination" .}}
     </main>
 {{template "bottom" .}}

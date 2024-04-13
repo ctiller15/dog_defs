@@ -31,6 +31,44 @@
 </form>
 {{ end }}
 
+{{ define "paginationlink"}}
+    {{ if .IsEllipsis }}
+        <li><span>&hellip;</span></li>
+    {{ else if  .IsCurrent }}
+        <li><a aria-label="Page {{.Value}}" aria-current="page">{{.Value}}</a></li>
+    {{ else }}
+        <li><a aria-label="Goto page {{.Value}}" href={{.PageUrl}}>{{.Value}}</a></li>
+    {{ end }}
+{{ end }}
+
+{{ define "pagination"}}
+    <header>
+    <nav>
+
+
+    <ul>
+        {{ if .previousPageLink.Enabled }}
+            <li>
+                <a href={{.previousPageLink.Url}}>Previous</a>
+            </li>
+        {{ end }}
+
+        {{ range .pagination}}
+            {{ template "paginationlink" . }}
+        {{ end }}
+
+        {{ if .nextPageLink.Enabled }}
+            <li>
+                <a href={{.nextPageLink.Url}}>Next page</a>
+            </li>
+        {{ end }}
+    </ul>
+
+
+    </nav>
+    </header>
+{{end}}
+
 {{ define "bottom" }}
 <footer>
     <p>Made with ❤️ by Pawsitech LLC</p>
