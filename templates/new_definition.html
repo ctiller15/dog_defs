@@ -66,32 +66,12 @@
         const anchorButton = document.querySelector('#anchorButton')
         anchorButton.addEventListener('click', function(e) {
             e.preventDefault()
-            const text = textArea.textContent
+            console.log(textArea)
+            const text = textArea.value
             const newText = text + ' <a href="/words/slug-goes-here">text-goes-here</a>'
-            textArea.textContent = newText
+            textArea.value = newText
         })
-        // window.ClassicEditor
-            // .create( document.querySelector( '#definition' ), {
-            //     toolbar: {
-            //         items: [
-            //             'bold',
-            //             'italic',
-            //             'link',
-            //             'bulletedList',
-            //             'numberedList',
-            //             '|',
-            //             'outdent',
-            //             'indent',
-            //             '|',
-            //             'blockQuote',
-            //             'undo',
-            //             'redo'
-            //         ]
-            //     }
-            // })
-            // .catch( error => {
-            //     console.error( error );
-            // } );
+
     </script>
 </main>
 {{template "bottom" .}}
