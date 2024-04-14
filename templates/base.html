@@ -14,29 +14,13 @@
 <body>
 {{ end }}
 
-{{ define "top_with_editor"}}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta 
-        name="viewport" 
-        content="width=device-width, initial-scale=1">
-    <link 
-        rel="stylesheet" 
-        href="https://cdn.simplecss.org/simple.min.css">
-    <script src="https://cdn.ckeditor.com/ckeditor5/41.3.0/classic/ckeditor.js"></script>
-    <title>{{ .title }}</title>
-</head>
-<body>
-{{ end }}
-
 {{ define "navigation"}}
 <header>
 <nav>
     <a href="/">Home</a>
     <a href="/words">Words</a>
     <a href="/definitions/new">New Definition</a>
+    <a href="/words_random">Random Word</a>
 </nav>
 <form action="/search" method="get">
     <input 

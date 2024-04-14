@@ -114,9 +114,6 @@ func wordsPage(c *gin.Context) {
 
 	json.Unmarshal(data, &wordsListResponse)
 
-	fmt.Println(wordsListResponse)
-	fmt.Println("^^^^^")
-
 	maxPages := int(count/int64(pageSize)) + 1
 
 	paginationResponse := createPagination(page, maxPages, "")
@@ -173,6 +170,42 @@ func mapToDefinitionViewModel(inModel []wordDefinitionListResult) []definitionVi
 	}
 
 	return output
+}
+
+type slugResult struct {
+	Slug string `json:"slug"`
+}
+
+func randomWord(c *gin.Context) {
+	// TODO: Break data retrieval into separate module.
+	apiUrl := os.Getenv("SUPABASE_API_URL")
+	apiKey := os.Getenv("SUPABASE_API_KEY")
+
+	client, err := supabase.NewClient(
+		apiUrl,
+		apiKey,
+		nil)
+
+	if err != nil {
+		fmt.Println("cannot initialize client", err)
+	}
+
+	var slug []slugResult
+
+	data, _, err := client.
+		From("words_random").
+		Select("slug", "exact", false).
+		Execute()
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	json.Unmarshal(data, &slug)
+
+	result := slug[0].Slug
+
+	c.Redirect(http.StatusSeeOther, fmt.Sprintf("/words/%s", result))
 }
 
 func wordDefinitionPage(c *gin.Context) {
@@ -259,8 +292,6 @@ func saveNewDefinition(c *gin.Context) {
 		"slug": slug.Make(strings.ToLower(newForm.Word)),
 	}
 
-	fmt.Println(saveWordForm)
-
 	data, _, err := client.From("words").Insert(
 		saveWordForm, true, "name", "representation", "",
 	).Single().Execute()
@@ -269,7 +300,6 @@ func saveNewDefinition(c *gin.Context) {
 		fmt.Println(err)
 	}
 
-	fmt.Println("$$$")
 	var wordResponse newDefinitionResponse
 	json.Unmarshal(data, &wordResponse)
 
@@ -348,6 +378,8 @@ func setupRouter() *gin.Engine {
 
 	r.GET("/words", wordsPage)
 	r.GET("/words/:word_slug", wordDefinitionPage)
+
+	r.GET("/words_random", randomWord)
 
 	r.GET("/definitions/new", newDefinitionsPage)
 	r.POST("/definitions/new", saveNewDefinition)
